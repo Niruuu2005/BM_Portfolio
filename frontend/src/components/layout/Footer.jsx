@@ -16,11 +16,11 @@ const Footer = ({ name = 'Mrs. B. Mahalakshmi', institution = 'PCCOE, Pune' }) =
     <footer className="footer">
       <div className="container">
         <div className="footer-inner">
-          <div className="footer-brand">
+          <div className="footer-brand glass-panel">
             <h3>{name}</h3>
             <p>Assistant Professor, Department of Computer Engineering<br />{institution}</p>
           </div>
-          <div className="footer-col">
+          <div className="footer-col glass-panel">
             <h4>Quick Links</h4>
             <ul className="footer-links">
               {QUICK_LINKS.map(({ label, to }) => (
@@ -30,7 +30,7 @@ const Footer = ({ name = 'Mrs. B. Mahalakshmi', institution = 'PCCOE, Pune' }) =
               ))}
             </ul>
           </div>
-          <div className="footer-col">
+          <div className="footer-col glass-panel">
             <h4>Admin</h4>
             <ul className="footer-links">
               <li><a href="/admin/login">Admin Login</a></li>

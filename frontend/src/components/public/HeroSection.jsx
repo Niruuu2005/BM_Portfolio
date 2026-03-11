@@ -15,7 +15,7 @@ const HeroSection = () => {
     <section id="home" className="hero-section">
       <div className="container hero__inner">
         <motion.div
-          className="hero__text"
+          className="hero__text glass-panel"
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}

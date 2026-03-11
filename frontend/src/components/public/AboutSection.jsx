@@ -12,8 +12,9 @@ const AboutSection = () => {
       <div className="container">
         <SectionHeader title="About Me" subtitle="Introduction" />
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-12)', alignItems: 'start' }}>
+        <div className="about-grid">
           <motion.div
+            className="glass-panel section-panel"
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
@@ -45,6 +46,7 @@ const AboutSection = () => {
           </motion.div>
 
           <motion.div
+            className="glass-panel section-panel"
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}

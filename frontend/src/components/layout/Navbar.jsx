@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NavLink, Link } from 'react-router-dom'
+import { MoonStar, SunMedium } from 'lucide-react'
 
 const NAV_LINKS = [
   { label: 'Home',         to: '/' },
@@ -14,7 +15,12 @@ const NAV_LINKS = [
   { label: 'Contact',      to: '/contact' },
 ]
 
-const Navbar = ({ brandName = 'Dr. B. Mahalakshmi', brandTitle = 'Professor & Researcher' }) => {
+const Navbar = ({
+  brandName = 'Dr. B. Mahalakshmi',
+  brandTitle = 'Professor & Researcher',
+  theme = 'light',
+  onToggleTheme,
+}) => {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -56,6 +62,18 @@ const Navbar = ({ brandName = 'Dr. B. Mahalakshmi', brandTitle = 'Professor & Re
         </ul>
 
         <button
+          type="button"
+          className="theme-toggle"
+          onClick={onToggleTheme}
+          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+        >
+          <span className="theme-toggle__icon">
+            {theme === 'light' ? <MoonStar size={16} /> : <SunMedium size={16} />}
+          </span>
+          <span className="theme-toggle__label">{theme === 'light' ? 'Dark' : 'Light'} mode</span>
+        </button>
+
+        <button
           className={`navbar__hamburger ${menuOpen ? 'open' : ''}`}
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle navigation"
@@ -66,6 +84,16 @@ const Navbar = ({ brandName = 'Dr. B. Mahalakshmi', brandTitle = 'Professor & Re
 
       {menuOpen && (
         <div className="navbar__mobile-menu">
+          <button
+            type="button"
+            className="theme-toggle theme-toggle--mobile"
+            onClick={onToggleTheme}
+          >
+            <span className="theme-toggle__icon">
+              {theme === 'light' ? <MoonStar size={16} /> : <SunMedium size={16} />}
+            </span>
+            <span className="theme-toggle__label">Switch to {theme === 'light' ? 'dark' : 'light'} mode</span>
+          </button>
           {NAV_LINKS.map((link) => (
             <NavLink
               key={link.to}
