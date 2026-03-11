@@ -1,10 +1,10 @@
 services:
   - type: web
     name: bm-portfolio
-    env: static
+    runtime: static
     rootDir: frontend
     buildCommand: npm install && npm run build
-    staticPublishPath: dist
+    staticPublishPath: frontend/dist
     routes:
       - type: rewrite
         source: /*
