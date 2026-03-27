@@ -12,7 +12,7 @@ Do **not** commit `.env`. It is listed in the root [`.gitignore`](../.gitignore)
 
 | Component | How |
 |-----------|-----|
-| **Vite** (`npm run dev` / `npm run build` in `frontend/`) | [`frontend/vite.config.js`](../frontend/vite.config.js) sets `envDir` to the repo root and **proxies `/api`** to FastAPI (default `http://127.0.0.1:8000`, override with `VITE_DEV_API_PROXY`). Without this, `VITE_API_URL=/api` would hit the Vite server and return **404**. |
+| **Vite** (`npm run dev` / `npm run build` in `frontend/`) | [`frontend/vite.config.js`](../frontend/vite.config.js) loads **`VITE_*` from the repo root `.env` and from `frontend/.env`** (merged; `frontend` wins on duplicate keys), **injects them into `import.meta.env`**, sets `envDir` to the repo root, and **proxies `/api`** to FastAPI (default `http://127.0.0.1:8000`, override with `VITE_DEV_API_PROXY`). Restart the dev server after changing env files. |
 | **FastAPI** (`uvicorn` from `api/`) | [`api/app/config.py`](../api/app/config.py) loads via **python-dotenv** (in order): root `.env`, root `.env.local`, `api/.env`, `api/.env.local`, `frontend/.env`, `frontend/.env.local`. **Later files override** duplicate keys. |
 | **`create-admins` script** | [`frontend/scripts/create-supabase-admin.mjs`](../frontend/scripts/create-supabase-admin.mjs) loads root `.env` first, then legacy `frontend/.env` if present. |
 

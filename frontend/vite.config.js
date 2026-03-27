@@ -4,13 +4,25 @@ import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 
 const repoRoot = path.resolve(__dirname, '..')
+const frontendRoot = path.join(repoRoot, 'frontend')
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, repoRoot, '')
-  const apiProxyTarget = env.VITE_DEV_API_PROXY || 'http://127.0.0.1:8000'
+  // Merge root + frontend/.env so VITE_* can live in either place (envDir alone only loads one folder).
+  const mergedEnv = {
+    ...loadEnv(mode, repoRoot, ''),
+    ...loadEnv(mode, frontendRoot, ''),
+  }
+  const apiProxyTarget = mergedEnv.VITE_DEV_API_PROXY || 'http://127.0.0.1:8000'
+
+  const viteEnvDefine = Object.fromEntries(
+    Object.entries(mergedEnv)
+      .filter(([key]) => key.startsWith('VITE_'))
+      .map(([key, value]) => [`import.meta.env.${key}`, JSON.stringify(value ?? '')]),
+  )
 
   return {
     envDir: repoRoot,
+    define: viteEnvDefine,
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
