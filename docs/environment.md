@@ -12,37 +12,21 @@ Do **not** commit `.env`. It is listed in the root [`.gitignore`](../.gitignore)
 
 | Component | How |
 |-----------|-----|
-| **Vite** (`npm run dev` / `npm run build` in `frontend/`) | [`frontend/vite.config.js`](../frontend/vite.config.js) loads **`VITE_*` from the repo root `.env` and from `frontend/.env`** (merged; `frontend` wins on duplicate keys), **injects them into `import.meta.env`**, sets `envDir` to the repo root, and **proxies `/api`** to `http://127.0.0.1:<API_PORT>` (default port `8000`, set **`API_PORT`** in `.env` to match uvicorn, e.g. `8001`, or override with **`VITE_DEV_API_PROXY`**). Restart the dev server after changing env files. |
-| **FastAPI** (`uvicorn` from `api/`) | [`api/app/config.py`](../api/app/config.py) loads via **python-dotenv** (in order): root `.env`, root `.env.local`, `api/.env`, `api/.env.local`, `frontend/.env`, `frontend/.env.local`. **Later files override** duplicate keys. |
-| **`create-admins` script** | [`frontend/scripts/create-supabase-admin.mjs`](../frontend/scripts/create-supabase-admin.mjs) loads root `.env` first, then legacy `frontend/.env` if present. |
-
-For the admin script, `create-supabase-admin.mjs` loads root first, then legacy `frontend/.env` (first file wins per key). For FastAPI, use the order above. If the DB cannot connect, see [troubleshooting_db.md](troubleshooting_db.md).
+| **Vite** (`npm run dev` / `npm run build` in `frontend/`) | [`frontend/vite.config.js`](../frontend/vite.config.js) reads env from repo root, and proxies `/api` to `http://127.0.0.1:<API_PORT>` (default `8000`). Override with `VITE_DEV_API_PROXY` if needed. |
+| **FastAPI** (`uvicorn` from `api/`) | [`api/app/config.py`](../api/app/config.py) loads only repo-root `.env` and `.env.local`. |
+| **`create-admins` script** | [`frontend/scripts/create-supabase-admin.mjs`](../frontend/scripts/create-supabase-admin.mjs) supports root `.env`; avoid per-folder env files. |
 
 ## Variable reference
 
-See the comments in [`.env.example`](../.env.example). In short:
+See [`.env.example`](../.env.example). In short:
 
-- **`VITE_*`** — used by the browser; only these are exposed to the client.
-- **`DATABASE_URL`**, **`SUPABASE_JWT_SECRET`**, **`CORS_*`** — FastAPI only.
-- **`SUPABASE_SERVICE_ROLE_KEY`** — Node scripts only (`npm run create-admins`); never expose to the client.
+- **`VITE_*`** - browser-visible vars.
+- **`API_PORT`** - local FastAPI port used by Vite proxy.
+- **`DATABASE_URL`**, **`SUPABASE_JWT_SECRET`**, **`CORS_*`** - backend only.
+- **`SUPABASE_SERVICE_ROLE_KEY`** - scripts only, never in browser.
 
-## What to edit on Vercel (deployment)
+## Vercel
 
-Vercel does **not** use your committed `.env` file. For each deployment you must set the same logical names in the dashboard:
+Vercel does not read local `.env` files from git. Set values in **Project Settings -> Environment Variables**.
 
-1. **Vercel** → your project → **Settings** → **Environment Variables**.
-2. Add each key from [`.env.example`](../.env.example) for production (and preview if needed).
-3. **Web** service needs `VITE_*` and `VITE_API_URL` (typically `/api` for the Services setup).
-4. **API** service needs `DATABASE_URL`, `SUPABASE_JWT_SECRET`, `CORS_ORIGINS`, optional `CORS_ORIGIN_REGEX`.
-
-Step-by-step deploy flow: [vercel_backend_deploy.md](vercel_backend_deploy.md).
-
-## What to edit on GitHub
-
-Only **tracked** files (e.g. `.env.example`, docs) are versioned. Push updates to those; never push secrets or `.env`.
-
-```bash
-git add .env.example docs/environment.md
-git commit -m "docs: env layout"
-git push
-```
+Deployment guide: [vercel_backend_deploy.md](vercel_backend_deploy.md).

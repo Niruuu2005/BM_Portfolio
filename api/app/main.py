@@ -34,7 +34,7 @@ async def _warn_if_no_database() -> None:
     if not settings.database_url.strip() or SessionLocal is None:
         logger.warning(
             "DATABASE_URL is not set or invalid. Copy .env.example to the repo root `.env` "
-            "and set DATABASE_URL (Supabase → Project Settings → Database). "
+            "and set DATABASE_URL (Supabase -> Project Settings -> Database). "
             "Public and admin routes that need Postgres will return 503 until then."
         )
 
@@ -57,13 +57,16 @@ def root():
 @app.exception_handler(SQLAlchemyError)
 async def sqlalchemy_exception_handler(_request, exc: SQLAlchemyError):
     """Avoid opaque 500s when DB is down or schema mismatches."""
-    return JSONResponse(
-        status_code=503,
-        content={
-            "detail": (
-                "Database error. Set DATABASE_URL in the repo root `.env` and ensure "
-                "migrations in docs/sql are applied. "
-                f"({exc.__class__.__name__})"
-            ),
-        },
+    err = str(exc)
+    detail = (
+        "Database error. Check DATABASE_URL in repo root `.env` and ensure migrations in docs/sql are applied. "
+        "If your DB password contains special characters (@, :, /, #, ?), URL-encode them in DATABASE_URL "
+        "(for example @ -> %40). "
     )
+    if "could not translate host name" in err or "Name or service not known" in err:
+        detail += (
+            "Current DB host cannot be resolved/reached from this machine. "
+            "Use Supabase Database -> Connection string -> Transaction pooler URI "
+            "(host like aws-0-<region>.pooler.supabase.com, port 6543) for IPv4-friendly connectivity. "
+        )
+    return JSONResponse(status_code=503, content={"detail": f"{detail}({exc.__class__.__name__})"})
