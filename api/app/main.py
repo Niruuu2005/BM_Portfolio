@@ -58,6 +58,9 @@ def root():
 async def sqlalchemy_exception_handler(_request, exc: SQLAlchemyError):
     """Avoid opaque 500s when DB is down or schema mismatches."""
     err = str(exc)
+    err_head = err.splitlines()[0].strip() if err else exc.__class__.__name__
+    if len(err_head) > 220:
+        err_head = f"{err_head[:220]}..."
     detail = (
         "Database error. Check DATABASE_URL in repo root `.env` and ensure migrations in docs/sql are applied. "
         "If your DB password contains special characters (@, :, /, #, ?), URL-encode them in DATABASE_URL "
@@ -69,4 +72,7 @@ async def sqlalchemy_exception_handler(_request, exc: SQLAlchemyError):
             "Use Supabase Database -> Connection string -> Transaction pooler URI "
             "(host like aws-0-<region>.pooler.supabase.com, port 6543) for IPv4-friendly connectivity. "
         )
-    return JSONResponse(status_code=503, content={"detail": f"{detail}({exc.__class__.__name__})"})
+    return JSONResponse(
+        status_code=503,
+        content={"detail": f"{detail}({exc.__class__.__name__}: {err_head})"},
+    )
