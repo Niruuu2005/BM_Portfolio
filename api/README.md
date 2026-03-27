@@ -20,6 +20,10 @@ Use a **single `.env` at the repository root** (copy from `.env.example`). FastA
 
 ## Run locally
 
+**Always run uvicorn from the `api/` folder** (the directory that contains the `app/` package), not from `api/app/`.
+
+If you `cd api/app` and run `uvicorn main:app`, Python cannot resolve `from app.config` and you get `ModuleNotFoundError: No module named 'app'`. Use:
+
 ```bash
 cd api
 python -m venv .venv
@@ -28,6 +32,8 @@ python -m venv .venv
 pip install -r requirements.txt
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
+
+Or double-click / run [`run-dev.ps1`](run-dev.ps1) (Windows) or [`run-dev.sh`](run-dev.sh) (Unix) from the `api/` directory.
 
 - Health: `GET http://localhost:8000/api/health`
 - Public: prefix `/api/public` (no auth)
