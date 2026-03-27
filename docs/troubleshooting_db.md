@@ -10,7 +10,8 @@
 
 1. **`DATABASE_URL` is set**  
    Use the **repo root** `.env`, or `frontend/.env` / `api/.env` (all are loaded; later files override earlier ones).  
-   See [`.env.example`](../.env.example).
+   See [`.env.example`](../.env.example).  
+   If the API still says “Database not configured” but `.env` has `DATABASE_URL`, check for an **empty `DATABASE_URL` in your user/system environment** (Windows “Environment Variables”). The app loads `.env` with **override** so the file wins; **restart uvicorn** after changing `.env`.
 
 2. **Supabase connection string**  
    - Dashboard → **Project Settings** → **Database** → copy **URI** (often port `6543` pooler or `5432` direct).  

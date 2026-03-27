@@ -16,8 +16,9 @@ def _load_dotenv_files() -> None:
     except ImportError:
         return
 
-    # Later files override earlier keys (override=True).
-    load_dotenv(_REPO_ROOT / ".env")
+    # Use override=True so values from project .env files win over empty or stale
+    # DATABASE_URL in the process environment (common on Windows / IDE-launched shells).
+    load_dotenv(_REPO_ROOT / ".env", override=True)
     load_dotenv(_REPO_ROOT / ".env.local", override=True)
     load_dotenv(_API_ROOT / ".env", override=True)
     load_dotenv(_API_ROOT / ".env.local", override=True)
