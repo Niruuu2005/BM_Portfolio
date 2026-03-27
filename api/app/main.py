@@ -4,7 +4,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.routers import admin, health, public
 
-app = FastAPI(title="BM Portfolio API", version="1.0.0")
+app = FastAPI(
+    title="BM Portfolio API",
+    version="1.0.0",
+    docs_url="/api/docs",
+    openapi_url="/api/openapi.json",
+    redoc_url="/api/redoc",
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -15,11 +21,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(health.router, tags=["health"])
-app.include_router(public.router, prefix="/public", tags=["public"])
-app.include_router(admin.router, prefix="/admin", tags=["admin"])
+app.include_router(health.router, prefix="/api", tags=["health"])
+app.include_router(public.router, prefix="/api/public", tags=["public"])
+app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 
 
 @app.get("/")
 def root():
-    return {"service": "bm-portfolio-api", "docs": "/docs"}
+    return {"service": "bm-portfolio-api", "docs": "/api/docs"}

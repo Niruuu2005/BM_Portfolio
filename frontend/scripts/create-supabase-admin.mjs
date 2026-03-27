@@ -6,7 +6,7 @@
  *   (alias: npm run create-admin — same script, creates all configured users)
  *
  * Requires:
- *   VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY in .env or .env.local
+ *   VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY in repo root `.env` (or `.env.local`)
  *
  * Run docs/sql/005_app_admins_role.sql on existing DBs before upserting { role }.
  *
@@ -24,6 +24,7 @@ import { fileURLToPath } from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const frontendRoot = join(__dirname, '..')
+const repoRoot = join(frontendRoot, '..')
 
 function loadEnvFile(path) {
   if (!existsSync(path)) return
@@ -72,7 +73,7 @@ function logAuthError(prefix, error) {
 
 if (!url || !serviceKey) {
   console.error(`
-Missing env. Add to frontend/.env:
+Missing env. Add to repo root .env (copy from .env.example):
 
   VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
   SUPABASE_SERVICE_ROLE_KEY=your_service_role_secret

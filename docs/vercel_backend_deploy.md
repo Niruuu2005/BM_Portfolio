@@ -33,8 +33,12 @@ Vercel Services may not be enabled in all workspaces. Verify your project can us
 - Root service config: `vercel.json`
 - Backend entrypoint: `api/index.py` (exports FastAPI `app`)
 - Backend app: `api/app/main.py`
-- Backend env template: `api/.env.example`
-- Frontend env template: `frontend/.env.example`
+- **Env template (single file for local dev):** `.env.example` at repo root → copy to `.env` (see [docs/environment.md](environment.md))
+
+## Local `.env` vs Vercel
+
+- **Locally:** one `.env` at the repository root (next to `vercel.json`). Vite and FastAPI are configured to read it.
+- **On Vercel:** no `.env` file is deployed; set the same variable names in **Project Settings → Environment Variables** for each service (see table below).
 
 ## Environment variables
 
@@ -111,8 +115,8 @@ Browser checks:
 
 Local direct FastAPI (without Services mount):
 
-- Backend routes are `/health`, `/public/*`, `/admin/*` on `http://localhost:8000`
-- Set frontend `VITE_API_URL=http://localhost:8000`
+- Backend routes are `/api/health`, `/api/public/*`, `/api/admin/*` on `http://localhost:8000`
+- Set frontend `VITE_API_URL=http://localhost:8000/api`
 
 Vercel local emulation:
 

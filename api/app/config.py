@@ -1,8 +1,24 @@
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+_API_ROOT = Path(__file__).resolve().parents[1]
+
+_ENV_FILE_CANDIDATES = (
+    _REPO_ROOT / ".env",
+    _REPO_ROOT / ".env.local",
+    _API_ROOT / ".env",
+)
+_ENV_FILES = tuple(str(p) for p in _ENV_FILE_CANDIDATES if p.is_file())
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=_ENV_FILES if _ENV_FILES else None,
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
     database_url: str = ""
     supabase_jwt_secret: str = ""
