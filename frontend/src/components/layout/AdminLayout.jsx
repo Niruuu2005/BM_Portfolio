@@ -42,8 +42,10 @@ const NAV = [
 ]
 
 const AdminLayout = ({ title, children }) => {
-  const { signOut, user } = useAuth()
+  const { signOut, user, adminRole } = useAuth()
   const navigate = useNavigate()
+
+  const navItems = adminRole === 'editor' ? NAV.filter((item) => item.to === '/admin/teaching') : NAV
 
   const handleLogout = async () => {
     await signOut()
@@ -57,9 +59,14 @@ const AdminLayout = ({ title, children }) => {
         <div className="sidebar-brand">
           <h2>Portfolio admin</h2>
           <p className="sidebar-brand__email">{user?.email ?? 'Signed in'}</p>
+          {adminRole === 'editor' && (
+            <p className="sidebar-brand__email" style={{ marginTop: 'var(--space-2)', fontSize: 'var(--font-size-xs)', opacity: 0.85 }}>
+              Teaching editor
+            </p>
+          )}
         </div>
         <nav className="sidebar-nav">
-          {NAV.map((item) => {
+          {navItems.map((item) => {
             const IconEl = item.Icon
             return (
               <NavLink
@@ -89,7 +96,9 @@ const AdminLayout = ({ title, children }) => {
         <header className="admin-topbar">
           <div>
             <h1>{title}</h1>
-            <p className="admin-topbar__subtitle text-muted">Manage portfolio content and visibility</p>
+            <p className="admin-topbar__subtitle text-muted">
+              {adminRole === 'editor' ? 'Manage subjects, study materials, and guided projects' : 'Manage portfolio content and visibility'}
+            </p>
           </div>
         </header>
         <div className="admin-content">

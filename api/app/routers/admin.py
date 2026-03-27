@@ -5,11 +5,12 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from sqlalchemy import desc, nullslast
 from sqlalchemy.orm import Session
 
-from app.deps import require_admin
+from app.deps import assert_table_access, get_admin_row, require_super, require_teaching_or_super
 from app.db import get_db
 from app.models import (
     Activity,
     AdminRole,
+    AppAdmin,
     Assessment,
     Award,
     Copyright,
@@ -107,10 +108,15 @@ def _filter_body(model: type, body: dict) -> dict:
     return out
 
 
+@router.get("/me")
+def admin_me(admin: AppAdmin = Depends(get_admin_row)):
+    return {"user_id": str(admin.user_id), "role": admin.role}
+
+
 @router.get("/profile")
 def admin_get_profile(
     db: Session = Depends(get_db),
-    _: uuid.UUID = Depends(require_admin),
+    _: AppAdmin = Depends(require_super),
 ):
     p = db.query(Profile).first()
     if not p:
@@ -122,7 +128,7 @@ def admin_get_profile(
 def admin_put_profile(
     body: dict = Body(...),
     db: Session = Depends(get_db),
-    _: uuid.UUID = Depends(require_admin),
+    _: AppAdmin = Depends(require_super),
 ):
     p = db.query(Profile).first()
     if not p:
@@ -137,7 +143,7 @@ def admin_put_profile(
 @router.get("/stats/counts")
 def admin_stats_counts(
     db: Session = Depends(get_db),
-    _: uuid.UUID = Depends(require_admin),
+    _: AppAdmin = Depends(require_super),
 ):
     keys = [
         ("publications", Publication),
@@ -157,7 +163,7 @@ def admin_stats_counts(
 @router.get("/subjects_taught/options")
 def admin_subject_options(
     db: Session = Depends(get_db),
-    _: uuid.UUID = Depends(require_admin),
+    _: AppAdmin = Depends(require_teaching_or_super),
 ):
     rows = db.query(SubjectTaught).order_by(SubjectTaught.subject_name.asc()).all()
     return [{"id": str(r.id), "subject_name": r.subject_name} for r in rows]
@@ -167,13 +173,14 @@ def admin_subject_options(
 def admin_list(
     table_key: str,
     db: Session = Depends(get_db),
-    _: uuid.UUID = Depends(require_admin),
+    admin: AppAdmin = Depends(get_admin_row),
     activity_type: str | None = Query(None),
     pub_type: str | None = Query(None),
 ):
     model = CRUD_TABLES.get(table_key)
     if not model:
         raise HTTPException(404, "Unknown table")
+    assert_table_access(admin, table_key)
     q = db.query(model)
     if table_key == "activities" and activity_type:
         q = q.filter(Activity.activity_type == activity_type)
@@ -188,11 +195,12 @@ def admin_create(
     table_key: str,
     body: dict = Body(...),
     db: Session = Depends(get_db),
-    _: uuid.UUID = Depends(require_admin),
+    admin: AppAdmin = Depends(get_admin_row),
 ):
     model = CRUD_TABLES.get(table_key)
     if not model:
         raise HTTPException(404, "Unknown table")
+    assert_table_access(admin, table_key)
     data = _filter_body(model, body)
     obj = model(**data)
     db.add(obj)
@@ -207,11 +215,12 @@ def admin_update(
     row_id: uuid.UUID,
     body: dict = Body(...),
     db: Session = Depends(get_db),
-    _: uuid.UUID = Depends(require_admin),
+    admin: AppAdmin = Depends(get_admin_row),
 ):
     model = CRUD_TABLES.get(table_key)
     if not model:
         raise HTTPException(404, "Unknown table")
+    assert_table_access(admin, table_key)
     obj = db.query(model).filter(model.id == row_id).first()
     if not obj:
         raise HTTPException(404)
@@ -227,11 +236,12 @@ def admin_delete(
     table_key: str,
     row_id: uuid.UUID,
     db: Session = Depends(get_db),
-    _: uuid.UUID = Depends(require_admin),
+    admin: AppAdmin = Depends(get_admin_row),
 ):
     model = CRUD_TABLES.get(table_key)
     if not model:
         raise HTTPException(404, "Unknown table")
+    assert_table_access(admin, table_key)
     obj = db.query(model).filter(model.id == row_id).first()
     if not obj:
         raise HTTPException(404)
@@ -246,11 +256,12 @@ def admin_toggle_visibility(
     row_id: uuid.UUID,
     body: dict = Body(...),
     db: Session = Depends(get_db),
-    _: uuid.UUID = Depends(require_admin),
+    admin: AppAdmin = Depends(get_admin_row),
 ):
     model = CRUD_TABLES.get(table_key)
     if not model or not hasattr(model, "is_visible"):
         raise HTTPException(404, "Unknown table or no visibility")
+    assert_table_access(admin, table_key)
     obj = db.query(model).filter(model.id == row_id).first()
     if not obj:
         raise HTTPException(404)

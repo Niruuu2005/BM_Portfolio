@@ -1,4 +1,18 @@
-const base = () => (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
+const base = () => (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '')
+
+function normalizePath(path) {
+  const withSlash = path.startsWith('/') ? path : `/${path}`
+  if (withSlash === '/api') return '/'
+  if (withSlash.startsWith('/api/')) return withSlash.slice(4)
+  return withSlash
+}
+
+function buildUrl(path) {
+  const b = base()
+  const p = normalizePath(path)
+  if (!b) return p
+  return `${b}${p}`
+}
 
 function formatDetail(detail) {
   if (detail == null) return ''
@@ -25,7 +39,7 @@ async function parseError(r) {
 
 /** Public read (no auth). */
 export async function apiPublic(path) {
-  const url = `${base()}${path.startsWith('/') ? path : `/${path}`}`
+  const url = buildUrl(path)
   const r = await fetch(url)
   if (!r.ok) throw new Error(await parseError(r))
   return r.json()
@@ -34,7 +48,7 @@ export async function apiPublic(path) {
 /** Admin CRUD; requires Supabase access_token. */
 export async function apiAdmin(path, { token, method = 'GET', body } = {}) {
   if (!token) throw new Error('Not authenticated')
-  const url = `${base()}${path.startsWith('/') ? path : `/${path}`}`
+  const url = buildUrl(path)
   const r = await fetch(url, {
     method,
     headers: {

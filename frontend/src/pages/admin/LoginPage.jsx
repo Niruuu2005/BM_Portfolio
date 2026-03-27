@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import toast from 'react-hot-toast'
-import { Mail, Lock } from 'lucide-react'
+import { User, Lock } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 
 /** Must match admin email created via Dashboard or `npm run create-admin` */
@@ -14,7 +14,7 @@ const formatAuthError = (error) => {
   const msg = String(error?.message || '')
   const status = error?.status
   if (status === 500 || /500|internal server error|unexpected failure/i.test(msg)) {
-    return 'Sign-in failed (server error). If this user was created with SQL on auth.users, remove them in Supabase → Authentication → Users, then run: npm run create-admin'
+    return 'Sign-in failed (server error). If this user was created with SQL on auth.users, remove them in Supabase → Authentication → Users, then run: npm run create-admins'
   }
   if (/permission denied|rls|row-level security/i.test(msg)) {
     return `${msg} — Ensure your user is in public.app_admins (see docs/create_admin_user.sql).`
@@ -22,14 +22,16 @@ const formatAuthError = (error) => {
   return msg || 'Login failed'
 }
 
+/** Supabase signs in with email; bare usernames map to @bm-portfolio.org (local part lowercased). */
 const normalizeSignInEmail = (raw) => {
   const s = raw.trim()
   if (!s) return s
-  return s.includes('@') ? s : `${s}@${ADMIN_LOGIN_EMAIL_DOMAIN}`
+  if (s.includes('@')) return s.toLowerCase()
+  return `${s.toLowerCase()}@${ADMIN_LOGIN_EMAIL_DOMAIN}`
 }
 
 const schema = z.object({
-  email:    z.string().min(1, 'Enter email or username'),
+  username: z.string().min(1, 'Enter username or email'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 })
 
@@ -40,9 +42,9 @@ const LoginPage = () => {
 
   const { register, handleSubmit, formState: { errors } } = useForm({ resolver: zodResolver(schema) })
 
-  const onSubmit = async ({ email, password }) => {
+  const onSubmit = async ({ username, password }) => {
     setLoading(true)
-    const { error } = await signIn(normalizeSignInEmail(email), password)
+    const { error } = await signIn(normalizeSignInEmail(username), password)
     setLoading(false)
     if (error) {
       toast.error(formatAuthError(error))
@@ -56,15 +58,15 @@ const LoginPage = () => {
       <div className="login-card">
         <div className="login-logo">BM</div>
         <h1 className="login-title">Admin Login</h1>
-        <p className="login-sub">Sign in to manage your portfolio</p>
+        <p className="login-sub">Use your username and password (e.g. nirruu20 or bmahalakshmi — full email also works).</p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="admin-form">
           <div className="form-group">
             <label className="form-label">
-              <Mail size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />Email or username
+              <User size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />Username or email
             </label>
-            <input {...register('email')} type="text" className="form-control" placeholder="nirruu20 or nirruu20@bm-portfolio.org" autoComplete="username" />
-            {errors.email && <p className="form-error">{errors.email.message}</p>}
+            <input {...register('username')} type="text" className="form-control" placeholder="nirruu20, bmahalakshmi, or …@bm-portfolio.org" autoComplete="username" />
+            {errors.username && <p className="form-error">{errors.username.message}</p>}
           </div>
 
           <div className="form-group">

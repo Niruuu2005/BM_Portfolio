@@ -14,6 +14,7 @@ class AppAdmin(Base):
     __tablename__ = "app_admins"
 
     user_id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True)
+    role: Mapped[str] = mapped_column(Text, nullable=False, server_default=text("'editor'"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=text("now()"))
 
 

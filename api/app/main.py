@@ -9,14 +9,15 @@ app = FastAPI(title="BM Portfolio API", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
+    allow_origin_regex=settings.cors_origin_regex_or_none,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(health.router, prefix="/api", tags=["health"])
-app.include_router(public.router, prefix="/api/public", tags=["public"])
-app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
+app.include_router(health.router, tags=["health"])
+app.include_router(public.router, prefix="/public", tags=["public"])
+app.include_router(admin.router, prefix="/admin", tags=["admin"])
 
 
 @app.get("/")

@@ -123,6 +123,42 @@ export const subjectSchema = z.object({
   is_visible:   z.boolean().optional(),
 })
 
+/** Aligned with docs/sql/004_migration_study_materials_categories.sql CHECK */
+const studyMaterialTypes = z.enum([
+  'notes',
+  'slides',
+  'lab',
+  'video',
+  'code',
+  'link',
+  'theory',
+  'reference',
+  'assignment',
+  'reading',
+  'other',
+])
+
+/** Matches `study_materials` + `StudyMaterialForm` */
+export const studyMaterialSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  material_type: studyMaterialTypes,
+  subject_id: z.union([z.string().uuid(), z.literal('')]).optional(),
+  subject: z.string().optional().or(z.literal('')),
+  academic_term: z.string().optional().or(z.literal('')),
+  description: z.string().optional().or(z.literal('')),
+  file_url: z.string().optional().or(z.literal('')),
+  external_url: z.string().optional().or(z.literal('')),
+  sort_order: z.preprocess(
+    (v) => (v === '' || v === undefined || v === null || (typeof v === 'number' && Number.isNaN(v)) ? 0 : v),
+    z.number().int()
+  ),
+  year: z.preprocess(
+    (v) => (v === '' || v === undefined || v === null || (typeof v === 'number' && Number.isNaN(v)) ? undefined : v),
+    z.number().int().min(1990).max(2100).optional()
+  ),
+  is_visible: z.boolean().optional(),
+})
+
 /** Matches `memberships` + `MembershipForm` + DB columns */
 export const membershipSchema = z.object({
   organization:    z.string().min(2, 'Organization is required'),

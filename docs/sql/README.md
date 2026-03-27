@@ -9,12 +9,15 @@ Run these **in order** in **Supabase Dashboard → SQL Editor** (or `psql` as a 
 | 2 | [002_policies.sql](002_policies.sql) | RLS: public read of visible rows; **writes only** for users in `public.app_admins` |
 | 3 | [003_seed.sql](003_seed.sql) | Sample portfolio + academic catalog + study/assessment seed rows |
 | **4** (existing DB only) | [004_migration_study_materials_categories.sql](004_migration_study_materials_categories.sql) | Extend `material_type` for theory / references / assignments + URL comments |
+| **5** (existing DB only) | [005_app_admins_role.sql](005_app_admins_role.sql) | Add `app_admins.role` (`super` / `editor`); backfill existing admins as `super` |
 
-To **fully clear and rebuild**: run `000_reset.sql`, then **1 → 2 → 3**, then `npm run create-admin`.
+To **fully clear and rebuild**: run `000_reset.sql`, then **1 → 2 → 3**, then `npm run create-admins` (or `npm run create-admin`) from `frontend/`.
 
 ### Already applied 001–003?
 
 Run **[004_migration_study_materials_categories.sql](004_migration_study_materials_categories.sql)** once to extend `study_materials.material_type` (theory, reference, assignment, reading, etc.) and add column hints for Drive URLs. New projects created from the updated `001_schema.sql` already include this; **004** is only for existing databases.
+
+Run **[005_app_admins_role.sql](005_app_admins_role.sql)** once if `app_admins` has no `role` column yet. Fresh **001** after this repo update already includes `role`; **005** is for databases created from older 001.
 
 ## Admin user (Auth)
 
@@ -22,7 +25,7 @@ Do **not** insert into `auth.users` by hand. After SQL:
 
 ```bash
 cd frontend
-npm run create-admin
+npm run create-admins
 ```
 
 Requires `SUPABASE_SERVICE_ROLE_KEY` and `VITE_SUPABASE_URL` in `frontend/.env`. The script creates the user and registers them in `public.app_admins` so the app can INSERT/UPDATE through RLS.

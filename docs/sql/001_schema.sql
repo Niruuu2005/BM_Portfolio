@@ -40,6 +40,7 @@ $$;
 -- Who may edit content (filled by npm run create-admin → service role)
 CREATE TABLE public.app_admins (
   user_id UUID PRIMARY KEY REFERENCES auth.users (id) ON DELETE CASCADE,
+  role TEXT NOT NULL DEFAULT 'editor' CHECK (role IN ('super', 'editor')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
