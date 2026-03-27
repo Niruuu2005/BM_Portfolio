@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy import desc, nullslast
 from sqlalchemy.orm import Session
 
@@ -33,7 +33,7 @@ router = APIRouter()
 def public_profile(db: Session = Depends(get_db)):
     p = db.query(Profile).first()
     if not p:
-        raise HTTPException(404, "No profile row")
+        return None
     return row_to_dict(p)
 
 

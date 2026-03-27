@@ -4,6 +4,7 @@
 
 - API returns **503** with `"Database not configured"` or `"DATABASE_URL"`.
 - Public pages or admin show errors loading data.
+- Browser console shows **`/api/public/...` 404** while running **`npm run dev`**: the Vite dev server was handling `/api` instead of FastAPI. Ensure [`frontend/vite.config.js`](../frontend/vite.config.js) proxies `/api` to uvicorn (default `http://127.0.0.1:8000`) and that the API process is running. Set `VITE_DEV_API_PROXY` if the API uses another host/port.
 
 ## Checklist
 
