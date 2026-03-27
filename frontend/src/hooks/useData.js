@@ -1,29 +1,48 @@
 import { useQuery } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { apiPublic } from '@/lib/api'
 
-const q = (table, opts = {}) => () =>
+const PATH = {
+  education: '/api/public/education',
+  experience: '/api/public/experience',
+  research_areas: '/api/public/research_areas',
+  awards: '/api/public/awards',
+  research_grants: '/api/public/research_grants',
+  patents: '/api/public/patents',
+  copyrights: '/api/public/copyrights',
+  activities: '/api/public/activities',
+  memberships: '/api/public/memberships',
+  subjects_taught: '/api/public/subjects_taught',
+  study_materials: '/api/public/study_materials',
+  projects_guided: '/api/public/projects_guided',
+  admin_roles: '/api/public/admin_roles',
+  programs: '/api/public/programs',
+  courses: '/api/public/courses',
+  assessments: '/api/public/assessments',
+}
+
+const makeHook = (key) => () =>
   useQuery({
-    queryKey: [table, opts],
+    queryKey: [key],
     queryFn: async () => {
-      let req = supabase.from(table).select('*')
-      if (opts.visibleOnly) req = req.eq('is_visible', true)
-      if (opts.order)       req = req.order(opts.order[0], { ascending: opts.order[1] ?? false })
-      const { data, error } = await req
-      if (error) throw error
+      const data = await apiPublic(PATH[key])
       return data ?? []
     },
+    staleTime: 1000 * 60 * 5,
   })
 
-export const useEducation    = q('education',       { visibleOnly: true,  order: ['sort_order', true] })
-export const useExperience   = q('experience',      { visibleOnly: true,  order: ['sort_order', true] })
-export const useResearchAreas= q('research_areas',  { visibleOnly: true,  order: ['sort_order', true] })
-export const useAwards       = q('awards',          { visibleOnly: true,  order: ['year', false] })
-export const useGrants       = q('research_grants', { visibleOnly: true,  order: ['start_date', false] })
-export const usePatents      = q('patents',         { visibleOnly: true,  order: ['year', false] })
-export const useCopyrights   = q('copyrights',      { visibleOnly: true,  order: ['year', false] })
-export const useActivities   = q('activities',      { visibleOnly: true,  order: ['year', false] })
-export const useMemberships  = q('memberships',     { visibleOnly: true,  order: ['year_joined', false] })
-export const useSubjectsTaught=q('subjects_taught', { visibleOnly: true,  order: ['level', true] })
-export const useStudyMaterials=q('study_materials', { visibleOnly: true,  order: ['year', false] })
-export const useProjects     = q('projects_guided', { visibleOnly: true,  order: ['year', false] })
-export const useAdminRoles   = q('admin_roles',     { visibleOnly: true,  order: ['year_from', false] })
+export const useEducation = makeHook('education')
+export const useExperience = makeHook('experience')
+export const useResearchAreas = makeHook('research_areas')
+export const useAwards = makeHook('awards')
+export const useGrants = makeHook('research_grants')
+export const usePatents = makeHook('patents')
+export const useCopyrights = makeHook('copyrights')
+export const useActivities = makeHook('activities')
+export const useMemberships = makeHook('memberships')
+export const useSubjectsTaught = makeHook('subjects_taught')
+export const useStudyMaterials = makeHook('study_materials')
+export const useProjects = makeHook('projects_guided')
+export const useAdminRoles = makeHook('admin_roles')
+export const usePrograms = makeHook('programs')
+export const useCourses = makeHook('courses')
+export const useAssessments = makeHook('assessments')

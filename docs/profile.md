@@ -22,7 +22,7 @@
 
 ## 📝 Personal Statement / Bio
 
-Mrs. B. Mahalakshmi is a dedicated Assistant Professor in the Department of Computer Engineering at PCCOE, Pune, with over **20 years of teaching experience**. She has been an integral part of the institution since approximately 2005, contributing to undergraduate teaching, student mentorship, departmental governance, and applied research. Her work spans the intersection of data analytics, machine learning, and healthcare diagnostics, with notable contributions to biomedical signal processing and automated medical image analysis. She is currently pursuing her Ph.D. while actively serving as an internal member of the Board of Studies (BoS) for the Computer Engineering department.
+Mrs. B. Mahalakshmi is a dedicated Assistant Professor in the Department of Computer Engineering at PCCOE, Pune, with over **20 years of teaching experience**. She has been an integral part of the institution since approximately 2005, contributing to undergraduate teaching, student mentorship, departmental governance, and applied research. Her work spans the intersection of data analytics, machine learning, and healthcare diagnostics, with notable contributions to biomedical signal processing and automated medical image analysis. She actively serves as an internal member of the Board of Studies (BoS) for the Computer Engineering department.
 
 ---
 
@@ -38,10 +38,9 @@ Fill into `education` table (sort_order: 1 = most recent, shown first):
 
 | # | Degree | Specialization | Institution | University | Year | Score | Note |
 |---|--------|---------------|-------------|-----------|------|-------|------|
-| 1 | Ph.D. (Pursuing) | Computer Engineering / Data Science | PCCOE, Pune | SPPU | — | — | In progress |
-| 2 | M.E. | Computer Engineering | *(Add institution)* | *(Add university)* | *(Add year)* | — | — |
-| 3 | B.Tech | Computer Science and Engineering | *(Add institution)* | *(Add university)* | *(Add year)* | — | — |
-| 4 | B.E. | Computer Engineering | *(Add institution)* | *(Add university)* | *(Add year)* | — | — |
+| 1 | M.E. | Computer Engineering | *(Add institution)* | *(Add university)* | *(Add year)* | — | — |
+| 2 | B.Tech | Computer Science and Engineering | *(Add institution)* | *(Add university)* | *(Add year)* | — | — |
+| 3 | B.E. | Computer Engineering | *(Add institution)* | *(Add university)* | *(Add year)* | — | — |
 
 ---
 

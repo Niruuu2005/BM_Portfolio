@@ -12,7 +12,7 @@ const EducationForm = ({ defaultValues, onSubmit, isLoading }) => {
     <form onSubmit={handleSubmit(onSubmit)} className="admin-form">
       <div className="form-group">
         <label className="form-label">Degree *</label>
-        <input {...register('degree')} className="form-control" placeholder="e.g. Ph.D." />
+        <input {...register('degree')} className="form-control" placeholder="e.g. M.E., B.E." />
         {errors.degree && <p className="form-error">{errors.degree.message}</p>}
       </div>
 

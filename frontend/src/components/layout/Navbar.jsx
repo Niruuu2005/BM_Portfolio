@@ -3,21 +3,16 @@ import { NavLink, Link } from 'react-router-dom'
 import { MoonStar, SunMedium } from 'lucide-react'
 
 const NAV_LINKS = [
-  { label: 'Home',         to: '/' },
-  { label: 'About',        to: '/about' },
-  { label: 'Education',    to: '/education' },
-  { label: 'Experience',   to: '/experience' },
-  { label: 'Research',     to: '/research' },
-  { label: 'Publications', to: '/publications' },
-  { label: 'Patents',      to: '/patents' },
-  { label: 'Teaching',     to: '/teaching' },
-  { label: 'Activities',   to: '/activities' },
-  { label: 'Contact',      to: '/contact' },
+  { label: 'Home',       to: '/' },
+  { label: 'Education',  to: '/education' },
+  { label: 'Teaching',   to: '/teaching' },
+  { label: 'Research',   to: '/research' },
+  { label: 'Projects',   to: '/projects' },
 ]
 
 const Navbar = ({
-  brandName = 'Dr. B. Mahalakshmi',
-  brandTitle = 'Professor & Researcher',
+  brandName = 'Mrs. B. Mahalakshmi',
+  brandTitle = 'Assistant Professor & Researcher',
   theme = 'light',
   onToggleTheme,
 }) => {

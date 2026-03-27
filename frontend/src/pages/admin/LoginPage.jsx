@@ -7,8 +7,29 @@ import toast from 'react-hot-toast'
 import { Mail, Lock } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 
+/** Must match admin email created via Dashboard or `npm run create-admin` */
+const ADMIN_LOGIN_EMAIL_DOMAIN = 'bm-portfolio.org'
+
+const formatAuthError = (error) => {
+  const msg = String(error?.message || '')
+  const status = error?.status
+  if (status === 500 || /500|internal server error|unexpected failure/i.test(msg)) {
+    return 'Sign-in failed (server error). If this user was created with SQL on auth.users, remove them in Supabase → Authentication → Users, then run: npm run create-admin'
+  }
+  if (/permission denied|rls|row-level security/i.test(msg)) {
+    return `${msg} — Ensure your user is in public.app_admins (see docs/create_admin_user.sql).`
+  }
+  return msg || 'Login failed'
+}
+
+const normalizeSignInEmail = (raw) => {
+  const s = raw.trim()
+  if (!s) return s
+  return s.includes('@') ? s : `${s}@${ADMIN_LOGIN_EMAIL_DOMAIN}`
+}
+
 const schema = z.object({
-  email:    z.string().email('Invalid email'),
+  email:    z.string().min(1, 'Enter email or username'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 })
 
@@ -21,10 +42,10 @@ const LoginPage = () => {
 
   const onSubmit = async ({ email, password }) => {
     setLoading(true)
-    const { error } = await signIn(email, password)
+    const { error } = await signIn(normalizeSignInEmail(email), password)
     setLoading(false)
     if (error) {
-      toast.error(error.message || 'Login failed')
+      toast.error(formatAuthError(error))
     } else {
       navigate('/admin/dashboard', { replace: true })
     }
@@ -40,9 +61,9 @@ const LoginPage = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="admin-form">
           <div className="form-group">
             <label className="form-label">
-              <Mail size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />Email
+              <Mail size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />Email or username
             </label>
-            <input {...register('email')} type="email" className="form-control" placeholder="admin@example.com" autoComplete="email" />
+            <input {...register('email')} type="text" className="form-control" placeholder="nirruu20 or nirruu20@bm-portfolio.org" autoComplete="username" />
             {errors.email && <p className="form-error">{errors.email.message}</p>}
           </div>
 

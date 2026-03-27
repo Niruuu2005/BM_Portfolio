@@ -1,13 +1,16 @@
 import { useForm } from 'react-hook-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
-import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/context/AuthContext'
+import { apiAdmin } from '@/lib/api'
 import { useProfile } from '@/hooks/useProfile'
 import { useUploadProfilePhoto, useUploadCV } from '@/hooks/useStorage'
+import { profileImageSrc } from '@/lib/driveImageUrl'
 import Spinner from '@/components/shared/Spinner'
 
 const ProfilePage = () => {
-  const queryClient  = useQueryClient()
+  const queryClient = useQueryClient()
+  const { accessToken } = useAuth()
   const { data: profile, isLoading } = useProfile()
   const uploadPhoto  = useUploadProfilePhoto()
   const uploadCV     = useUploadCV()
@@ -16,8 +19,7 @@ const ProfilePage = () => {
 
   const { mutate: saveProfile, isPending } = useMutation({
     mutationFn: async (data) => {
-      const { error } = await supabase.from('profile').update(data).eq('id', data.id)
-      if (error) throw error
+      await apiAdmin('/api/admin/profile', { token: accessToken, method: 'PUT', body: data })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] })
@@ -31,7 +33,7 @@ const ProfilePage = () => {
     if (!file) return
     const url = await uploadPhoto.mutateAsync(file)
     if (url) {
-      await supabase.from('profile').update({ photo_url: url }).eq('id', profile.id)
+      await apiAdmin('/api/admin/profile', { token: accessToken, method: 'PUT', body: { ...profile, photo_url: url } })
       queryClient.invalidateQueries({ queryKey: ['profile'] })
       toast.success('Photo updated!')
     }
@@ -42,7 +44,7 @@ const ProfilePage = () => {
     if (!file) return
     const url = await uploadCV.mutateAsync(file)
     if (url) {
-      await supabase.from('profile').update({ cv_url: url }).eq('id', profile.id)
+      await apiAdmin('/api/admin/profile', { token: accessToken, method: 'PUT', body: { ...profile, cv_url: url } })
       queryClient.invalidateQueries({ queryKey: ['profile'] })
       toast.success('CV updated!')
     }
@@ -82,6 +84,14 @@ const ProfilePage = () => {
           <div className="form-group">
             <label className="form-label">Institution URL</label>
             <input {...register('institution_url')} className="form-control" />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Institution Logo URL</label>
+            <input {...register('institution_logo_url')} className="form-control" placeholder="https://…/college-logo.png" />
+            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', marginTop: 'var(--space-1)', display: 'block' }}>
+              Displayed as a badge and watermark in the home page hero section.
+            </span>
           </div>
 
           <div className="form-group">
@@ -128,7 +138,7 @@ const ProfilePage = () => {
           <div className="admin-card">
             <h3 style={{ fontFamily: 'var(--font-heading)', marginBottom: 'var(--space-4)' }}>Profile Photo</h3>
             {profile?.photo_url && (
-              <img src={profile.photo_url} alt="profile" style={{ width: 120, height: 120, borderRadius: '50%', objectFit: 'cover', marginBottom: 'var(--space-4)' }} />
+              <img src={profileImageSrc(profile.photo_url) || profile.photo_url} alt="profile" style={{ width: 120, height: 120, borderRadius: '50%', objectFit: 'cover', marginBottom: 'var(--space-4)' }} />
             )}
             <input type="file" accept="image/*" onChange={handlePhotoUpload} id="photo-upload" style={{ display: 'none' }} />
             <label htmlFor="photo-upload" className="btn btn--outline" style={{ cursor: 'pointer', display: 'inline-block' }}>

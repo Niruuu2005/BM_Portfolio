@@ -1,99 +1,136 @@
 import { z } from 'zod'
 
+/** Matches `publications` table + `PublicationForm` (journal_name, pub_type — not venue) */
 export const publicationSchema = z.object({
-  title:     z.string().min(5, 'Title must be at least 5 characters'),
-  authors:   z.string().min(3, 'Authors are required'),
-  venue:     z.string().optional(),
-  volume:    z.string().optional(),
-  issue:     z.string().optional(),
-  pages:     z.string().optional(),
-  year:      z.coerce.number().int().min(1900).max(2100),
-  doi:       z.string().optional(),
+  pub_type: z.enum(['journal', 'conference', 'book_chapter', 'book']),
+  title:    z.string().min(5, 'Title must be at least 5 characters'),
+  authors:  z.string().min(3, 'Authors are required'),
+  journal_name: z.string().optional().or(z.literal('')),
+  volume:   z.string().optional().or(z.literal('')),
+  issue:    z.string().optional().or(z.literal('')),
+  pages:    z.string().optional().or(z.literal('')),
+  year: z.preprocess(
+    (v) => (v === '' || v === undefined || v === null || (typeof v === 'number' && Number.isNaN(v)) ? undefined : v),
+    z.number().int().min(1900).max(2100).optional()
+  ),
+  doi:       z.string().optional().or(z.literal('')),
   url:       z.string().url('Must be a valid URL').optional().or(z.literal('')),
-  publisher: z.string().optional(),
-  indexing:  z.enum(['SCI', 'Scopus', 'UGC', 'Others', '']).optional(),
-  isbn_issn: z.string().optional(),
+  publisher: z.string().optional().or(z.literal('')),
+  indexing:  z.string().optional().or(z.literal('')),
+  impact_factor: z.preprocess(
+    (v) => (v === '' || v === undefined || v === null || (typeof v === 'number' && Number.isNaN(v)) ? undefined : v),
+    z.number().optional()
+  ),
+  is_visible: z.boolean().optional(),
 })
 
+/** Matches `education` + `EducationForm` (field_of_study, start_year/end_year — not specialization/year) */
 export const educationSchema = z.object({
-  degree:           z.string().min(2, 'Degree is required'),
-  specialization:   z.string().optional(),
-  institution:      z.string().optional(),
-  university:       z.string().optional(),
-  year:             z.coerce.number().int().min(1950).max(2100),
-  score:            z.string().optional(),
-  rank_distinction: z.string().optional(),
-  thesis_title:     z.string().optional(),
-  sort_order:       z.coerce.number().int().default(0),
+  degree:         z.string().min(2, 'Degree is required'),
+  field_of_study: z.string().min(2, 'Field of study is required'),
+  institution:    z.string().min(2, 'Institution is required'),
+  university:     z.string().optional().or(z.literal('')),
+  start_year: z.preprocess(
+    (v) => (v === '' || v === undefined || v === null || (typeof v === 'number' && Number.isNaN(v)) ? undefined : v),
+    z.number().int().min(1950).max(2100)
+  ),
+  end_year: z.preprocess(
+    (v) => (v === '' || v === undefined || v === null || (typeof v === 'number' && Number.isNaN(v)) ? undefined : v),
+    z.number().int().min(1950).max(2100).optional()
+  ),
+  grade: z.string().optional().or(z.literal('')),
 })
 
+/** Matches `patents` + `PatentForm` (application_number — not application_no; no year column in DB) */
 export const patentSchema = z.object({
-  title:          z.string().min(5, 'Title is required'),
-  inventors:      z.string().min(2, 'Inventors are required'),
-  application_no: z.string().optional(),
-  year:           z.coerce.number().int().min(1990).max(2100),
-  country:        z.string().default('India'),
-  status:         z.enum(['filed', 'published', 'exam', 'granted']),
-  description:    z.string().optional(),
+  title:               z.string().min(5, 'Title is required'),
+  inventors:           z.string().min(2, 'Inventors are required'),
+  application_number:  z.string().optional().or(z.literal('')),
+  patent_number:       z.string().optional().or(z.literal('')),
+  filing_date:         z.string().optional().or(z.literal('')),
+  grant_date:          z.string().optional().or(z.literal('')),
+  status:              z.enum(['filed', 'published', 'granted']),
+  country:             z.string().optional().or(z.literal('')),
+  is_visible:          z.boolean().optional(),
 })
 
+/** Matches `copyrights` + `CopyrightForm` (registration_number, work_type — not reg_no/type enum) */
 export const copyrightSchema = z.object({
-  title:    z.string().min(3, 'Title is required'),
-  reg_no:   z.string().optional(),
-  reg_date: z.string().optional(),
-  year:     z.coerce.number().int().min(1990).max(2100),
-  type:     z.enum(['lab_manual', 'software', 'research', 'presentation', '']).optional(),
+  title:                z.string().min(3, 'Title is required'),
+  authors:              z.string().min(2, 'Authors are required'),
+  registration_number:  z.string().optional().or(z.literal('')),
+  registration_date:    z.string().optional().or(z.literal('')),
+  work_type:            z.string().optional().or(z.literal('')),
+  year: z.preprocess(
+    (v) => (v === '' || v === undefined || v === null || (typeof v === 'number' && Number.isNaN(v)) ? undefined : v),
+    z.number().int().min(1990).max(2100).optional()
+  ),
+  is_visible: z.boolean().optional(),
 })
 
+/** Matches `activities` + `ActivityForm` (activity_type — not institution/mode/description) */
 export const activitySchema = z.object({
-  title:       z.string().min(3, 'Title is required'),
-  organizer:   z.string().optional(),
-  venue:       z.string().optional(),
-  institution: z.string().optional(),
-  year:        z.coerce.number().int().min(1990).max(2100),
-  duration:    z.string().optional(),
-  mode:        z.enum(['Online', 'Offline', 'Hybrid', '']).optional(),
-  role:        z.string().optional(),
-  description: z.string().optional(),
+  activity_type: z.enum(['fdp_attended', 'workshop_organized', 'guest_lecture', 'judge_mentor', 'reviewer']),
+  title:         z.string().min(3, 'Title is required'),
+  organizer:     z.string().optional().or(z.literal('')),
+  venue:         z.string().optional().or(z.literal('')),
+  year: z.preprocess(
+    (v) => (v === '' || v === undefined || v === null || (typeof v === 'number' && Number.isNaN(v)) ? undefined : v),
+    z.number().int().min(1990).max(2100).optional()
+  ),
+  duration:   z.string().optional().or(z.literal('')),
+  role:       z.string().optional().or(z.literal('')),
+  is_visible: z.boolean().optional(),
 })
 
+/** Matches `experience` + `ExperienceForm` (role, organization — ExperiencePage maps responsibilities_text → JSON) */
 export const experienceSchema = z.object({
-  designation:  z.string().min(2, 'Designation is required'),
-  department:   z.string().optional(),
-  institution:  z.string().min(2, 'Institution is required'),
-  type:         z.enum(['academic', 'industry', 'research']),
-  start_date:   z.string().optional(),
-  end_date:     z.string().optional(),
-  is_current:   z.boolean().default(false),
-  sort_order:   z.coerce.number().int().default(0),
+  role:                  z.string().min(2, 'Role is required'),
+  organization:          z.string().min(2, 'Organization is required'),
+  department:            z.string().optional().or(z.literal('')),
+  start_date:            z.string().min(1, 'Start date is required'),
+  end_date:              z.string().optional().or(z.literal('')),
+  is_current:            z.boolean().optional(),
+  responsibilities_text: z.string().optional().or(z.literal('')),
 })
 
+/** Matches `research_areas` + `ResearchAreaForm` */
 export const researchAreaSchema = z.object({
-  name:       z.string().min(2, 'Name is required'),
-  icon:       z.string().optional(),
-  sort_order: z.coerce.number().int().default(0),
+  name:        z.string().min(2, 'Name is required'),
+  icon:        z.string().optional().or(z.literal('')),
+  description: z.string().optional().or(z.literal('')),
+  is_visible:  z.boolean().optional(),
 })
 
+/** Matches `awards` + `AwardForm` (awarding_body, award_type — not awarded_by/url) */
 export const awardSchema = z.object({
-  title:       z.string().min(3, 'Title is required'),
-  awarded_by:  z.string().optional(),
-  year:        z.coerce.number().int().min(1990).max(2100),
-  description: z.string().optional(),
-  url:         z.string().url().optional().or(z.literal('')),
+  title:         z.string().min(3, 'Title is required'),
+  awarding_body: z.string().optional().or(z.literal('')),
+  year: z.preprocess(
+    (v) => (v === '' || v === undefined || v === null || (typeof v === 'number' && Number.isNaN(v)) ? undefined : v),
+    z.number().int().min(1990).max(2100).optional()
+  ),
+  award_type:   z.string().optional().or(z.literal('')),
+  description:  z.string().optional().or(z.literal('')),
+  is_visible:   z.boolean().optional(),
 })
 
+/** Matches `subjects_taught` + `SubjectForm` fields (DB also has year_from/year_to — add when form exposes them) */
 export const subjectSchema = z.object({
-  subject:   z.string().min(2, 'Subject is required'),
-  level:     z.enum(['UG', 'PG']),
-  department:z.string().optional(),
-  year_from: z.coerce.number().int().optional(),
-  year_to:   z.coerce.number().int().optional(),
+  subject_name: z.string().min(2, 'Subject name is required'),
+  subject_code: z.string().optional().or(z.literal('')),
+  level:        z.enum(['UG', 'PG']),
+  is_visible:   z.boolean().optional(),
 })
 
+/** Matches `memberships` + `MembershipForm` + DB columns */
 export const membershipSchema = z.object({
-  organization: z.string().min(2, 'Organization is required'),
-  type:         z.enum(['life_member', 'member', 'senior_member', 'fellow']).default('member'),
-  member_no:    z.string().optional(),
-  year_from:    z.coerce.number().int().optional(),
-  year_to:      z.coerce.number().int().optional(),
+  organization:    z.string().min(2, 'Organization is required'),
+  membership_type: z.string().optional().or(z.literal('')),
+  membership_id:   z.string().optional().or(z.literal('')),
+  year_joined: z.preprocess(
+    (v) => (v === '' || v === undefined || v === null || (typeof v === 'number' && Number.isNaN(v)) ? undefined : v),
+    z.number().int().min(1900).max(2100).optional()
+  ),
+  is_visible: z.boolean().optional(),
 })

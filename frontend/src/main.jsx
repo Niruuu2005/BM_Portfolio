@@ -6,6 +6,7 @@ import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from '@/context/AuthContext'
 import { queryClient } from '@/lib/queryClient'
 import AppRouter from '@/routes/AppRouter'
+import ErrorBoundary from '@/components/shared/ErrorBoundary'
 import './styles.css'
 
 createRoot(document.getElementById('root')).render(
@@ -13,14 +14,18 @@ createRoot(document.getElementById('root')).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <AppRouter />
+          <ErrorBoundary>
+            <AppRouter />
+          </ErrorBoundary>
           <Toaster
             position="top-right"
             toastOptions={{
+              className: 'toast-surface',
               style: {
-                background: '#1E293B',
-                color: '#F1F5F9',
-                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'var(--color-surface)',
+                color: 'var(--color-text)',
+                border: '1px solid var(--color-border)',
+                boxShadow: '0 20px 50px -24px var(--color-shadow)',
               },
             }}
           />

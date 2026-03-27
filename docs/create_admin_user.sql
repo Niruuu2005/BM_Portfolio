@@ -1,0 +1,35 @@
+-- =============================================================================
+-- Admin user: nirruu20@bm-portfolio.org  /  200605
+-- =============================================================================
+--
+-- If npm run create-admin fails with "Database error checking email", see:
+--   docs/troubleshooting_auth_create_user.md
+--
+-- Do NOT insert into auth.users via SQL — login will fail with HTTP 500 because
+-- Supabase GoTrue cannot verify pgcrypto bcrypt hashes the same way.
+--
+-- Use ONE of these:
+--
+-- 1) Node script (recommended — from frontend folder):
+--      Add to frontend/.env or frontend/.env.local:
+--        VITE_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+--        SUPABASE_SERVICE_ROLE_KEY=<service_role secret from Dashboard → API>
+--      Then run:
+--        npm run create-admin
+--
+-- 2) Supabase Dashboard → Authentication → Users → “Add user”
+--      Email:    nirruu20@bm-portfolio.org
+--      Password: 200605
+--      Enable “Auto Confirm User” if shown.
+--
+-- Sign in at /admin/login with:
+--   nirruu20   OR   nirruu20@bm-portfolio.org   +   200605
+--
+-- After docs/sql/002_policies.sql, only users listed in public.app_admins can
+-- edit data. npm run create-admin upserts your user into app_admins.
+-- If you used Dashboard → Add user instead, insert the row manually (SQL Editor,
+-- as postgres / service role):
+--   INSERT INTO public.app_admins (user_id)
+--   SELECT id FROM auth.users WHERE email = 'nirruu20@bm-portfolio.org' LIMIT 1;
+--
+-- =============================================================================

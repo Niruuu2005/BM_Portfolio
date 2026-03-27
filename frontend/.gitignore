@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Secrets and local artifacts (use .env.example)
+.env
+signup_result.txt
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

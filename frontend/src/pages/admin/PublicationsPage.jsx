@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
-import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/context/AuthContext'
+import { apiAdmin } from '@/lib/api'
 import DataTable from '@/components/shared/DataTable'
 import Modal from '@/components/shared/Modal'
 import ConfirmDialog from '@/components/shared/ConfirmDialog'
@@ -12,65 +13,96 @@ const PUB_TABS = ['journal', 'conference', 'book_chapter', 'book']
 
 const PublicationsPage = () => {
   const queryClient = useQueryClient()
-  const [tab,       setTab]   = useState('journal')
+  const { accessToken } = useAuth()
+  const [tab, setTab] = useState('journal')
   const [modalOpen, setModal] = useState(false)
-  const [editItem,  setEdit]  = useState(null)
-  const [deleteId,  setDelId] = useState(null)
+  const [editItem, setEdit] = useState(null)
+  const [deleteId, setDelId] = useState(null)
 
   const { data = [], isLoading } = useQuery({
     queryKey: [TABLE, tab],
-    queryFn: async () => {
-      const { data, error } = await supabase.from(TABLE).select('*').eq('pub_type', tab).order('year', { ascending: false })
-      if (error) throw error
-      return data
-    },
+    enabled: !!accessToken,
+    queryFn: async () =>
+      apiAdmin(`/api/admin/data/${TABLE}?pub_type=${encodeURIComponent(tab)}`, { token: accessToken }),
   })
 
   const upsert = useMutation({
     mutationFn: async (values) => {
-      const { error } = editItem
-        ? await supabase.from(TABLE).update(values).eq('id', editItem.id)
-        : await supabase.from(TABLE).insert(values)
-      if (error) throw error
+      if (editItem) {
+        await apiAdmin(`/api/admin/data/${TABLE}/${editItem.id}`, {
+          token: accessToken,
+          method: 'PUT',
+          body: values,
+        })
+      } else {
+        await apiAdmin(`/api/admin/data/${TABLE}`, { token: accessToken, method: 'POST', body: values })
+      }
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: [TABLE] }); setModal(false); toast.success('Saved!') },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [TABLE] })
+      setModal(false)
+      toast.success('Saved!')
+    },
     onError: (err) => toast.error(err.message),
   })
 
   const remove = useMutation({
     mutationFn: async (id) => {
-      const { error } = await supabase.from(TABLE).delete().eq('id', id)
-      if (error) throw error
+      await apiAdmin(`/api/admin/data/${TABLE}/${id}`, { token: accessToken, method: 'DELETE' })
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: [TABLE] }); setDelId(null); toast.success('Deleted!') },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [TABLE] })
+      setDelId(null)
+      toast.success('Deleted!')
+    },
+    onError: (err) => toast.error(err.message),
+  })
+
+  const toggleVis = useMutation({
+    mutationFn: async ({ id, is_visible }) => {
+      await apiAdmin(`/api/admin/data/${TABLE}/${id}/visibility`, {
+        token: accessToken,
+        method: 'PATCH',
+        body: { is_visible: !is_visible },
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [TABLE] })
+      toast.success('Visibility updated!')
+    },
     onError: (err) => toast.error(err.message),
   })
 
   const columns = [
-    { key: 'title',        header: 'Title',   render: (v) => v?.substring(0, 60) + (v?.length > 60 ? '…' : '') },
-    { key: 'authors',      header: 'Authors', render: (v) => v?.substring(0, 40) + (v?.length > 40 ? '…' : '') },
+    { key: 'title', header: 'Title', render: (v) => (v ? String(v).substring(0, 60) + (v.length > 60 ? '…' : '') : '') },
+    { key: 'authors', header: 'Authors', render: (v) => (v ? String(v).substring(0, 40) + (v.length > 40 ? '…' : '') : '') },
     { key: 'journal_name', header: 'Journal' },
-    { key: 'year',         header: 'Year' },
-    { key: 'is_visible',   header: 'Visible',  render: (v) => v ? '✅' : '🚫' },
+    { key: 'year', header: 'Year' },
   ]
 
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-6)' }}>
         <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 'var(--font-size-2xl)' }}>Publications</h1>
-        <button className="btn btn--primary" onClick={() => { setEdit(null); setModal(true) }}>+ Add</button>
+        <button type="button" className="btn btn--primary" onClick={() => { setEdit(null); setModal(true) }}>+ Add</button>
       </div>
 
       <div className="tabs" style={{ marginBottom: 'var(--space-6)' }}>
         {PUB_TABS.map((t) => (
-          <button key={t} className={`tab-btn ${tab === t ? 'tab-btn--active' : ''}`} onClick={() => setTab(t)}>
+          <button key={t} type="button" className={`tab-btn ${tab === t ? 'tab-btn--active' : ''}`} onClick={() => setTab(t)}>
             {t.replace('_', ' ')}
           </button>
         ))}
       </div>
 
-      <DataTable data={data} columns={columns} isLoading={isLoading}
-        onEdit={(row) => { setEdit(row); setModal(true) }} onDelete={(row) => setDelId(row.id)} />
+      <DataTable
+        data={data}
+        columns={columns}
+        isLoading={isLoading}
+        onEdit={(row) => { setEdit(row); setModal(true) }}
+        onDelete={(id) => setDelId(id)}
+        onToggleVisibility={(id, is_visible) => toggleVis.mutate({ id, is_visible })}
+      />
 
       <Modal isOpen={modalOpen} onClose={() => setModal(false)} title={editItem ? 'Edit Publication' : 'Add Publication'}>
         <PublicationForm defaultValues={editItem || { pub_type: tab }} onSubmit={upsert.mutate} isLoading={upsert.isPending} />

@@ -1,24 +1,21 @@
 import { useQuery } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { apiPublic } from '@/lib/api'
 
 export const usePublications = (type = null) =>
   useQuery({
     queryKey: ['publications', type],
     queryFn: async () => {
-      let q = supabase.from('publications').select('*').eq('is_visible', true).order('year', { ascending: false })
-      if (type) q = q.eq('pub_type', type)
-      const { data, error } = await q
-      if (error) throw error
+      const q = type ? `?pub_type=${encodeURIComponent(type)}` : ''
+      const data = await apiPublic(`/api/public/publications${q}`)
       return data ?? []
     },
   })
 
 export const useAllPublications = () =>
   useQuery({
-    queryKey: ['publications'],
+    queryKey: ['publications', 'all'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('publications').select('*').order('year', { ascending: false })
-      if (error) throw error
+      const data = await apiPublic('/api/public/publications')
       return data ?? []
     },
   })

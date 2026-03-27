@@ -3,19 +3,24 @@ import { motion } from 'framer-motion'
 import { usePublications } from '@/hooks/usePublications'
 import SectionHeader from '@/components/shared/SectionHeader'
 
+// MT-33: Fixed pub.journal_name → pub.venue (correct DB column)
+// MT-35: Removed impact_factor (column doesn't exist in schema)
+// MT-37: Fixed className="form-control" → className="year-select"
+// MT-49: Replaced inline styles with CSS classes
+
 const PUB_TABS = [
-  { key: 'journal',       label: 'Journal Articles' },
-  { key: 'conference',    label: 'Conference Papers' },
-  { key: 'book_chapter',  label: 'Book Chapters' },
-  { key: 'book',          label: 'Books' },
+  { key: 'journal',      label: 'Journal Articles' },
+  { key: 'conference',   label: 'Conference Papers' },
+  { key: 'book_chapter', label: 'Book Chapters' },
+  { key: 'book',         label: 'Books' },
 ]
 
 const PublicationsSection = () => {
-  const [tab, setTab] = useState('journal')
+  const [tab, setTab]           = useState('journal')
   const [yearFilter, setYearFilter] = useState('all')
   const { data: pubs = [], isLoading } = usePublications(tab)
 
-  const years = ['all', ...Array.from(new Set(pubs.map((p) => p.year).filter(Boolean))).sort((a, b) => b - a)]
+  const years    = ['all', ...Array.from(new Set(pubs.map((p) => p.year).filter(Boolean))).sort((a, b) => b - a)]
   const filtered = yearFilter === 'all' ? pubs : pubs.filter((p) => String(p.year) === yearFilter)
 
   return (
@@ -35,61 +40,61 @@ const PublicationsSection = () => {
           ))}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--space-4)' }}>
+        <div className="pub-controls">
           <select
             value={yearFilter}
             onChange={(e) => setYearFilter(e.target.value)}
-            className="form-control"
-            style={{ width: 'fit-content', minWidth: 120 }}
+            className="year-select"
+            aria-label="Filter by year"
           >
             {years.map((y) => <option key={y} value={y}>{y === 'all' ? 'All Years' : y}</option>)}
           </select>
+          <span className="pub-count">{filtered.length} publication{filtered.length !== 1 ? 's' : ''}</span>
         </div>
 
         {isLoading ? (
-          <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', marginTop: 'var(--space-8)' }}>Loading…</p>
+          <div className="empty-state">
+            <div className="spinner spinner-lg" style={{ margin: '0 auto 1rem' }} />
+            <p>Loading publications…</p>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="empty-state">
+            <p>No publications found for this filter.</p>
+          </div>
         ) : (
-          <motion.ol
+          <motion.ul
             key={tab + yearFilter}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            style={{ listStyle: 'decimal', paddingLeft: 'var(--space-6)', marginTop: 'var(--space-6)', display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}
+            className="publication-list"
           >
-            {filtered.map((pub) => (
-              <li key={pub.id} className="pub-card">
-                <p style={{ fontWeight: 600, marginBottom: 'var(--space-1)' }}>{pub.title}</p>
-                <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--font-size-sm)', marginBottom: 'var(--space-1)' }}>
-                  {pub.authors}
-                </p>
-                <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap', alignItems: 'center', fontSize: 'var(--font-size-sm)' }}>
-                  {pub.journal_name && (
-                    <em style={{ color: 'var(--color-accent)' }}>{pub.journal_name}</em>
-                  )}
-                  {pub.year && <span className="badge badge--blue">{pub.year}</span>}
-                  {pub.volume && <span style={{ color: 'var(--color-text-muted)' }}>Vol. {pub.volume}</span>}
-                  {pub.pages  && <span style={{ color: 'var(--color-text-muted)' }}>pp. {pub.pages}</span>}
-                  {pub.impact_factor && (
-                    <span className="badge badge--green">IF: {pub.impact_factor}</span>
-                  )}
-                  {pub.doi && (
-                    <a href={`https://doi.org/${pub.doi}`} target="_blank" rel="noreferrer"
-                       style={{ color: 'var(--color-accent)', textDecoration: 'underline' }}>
-                      DOI
-                    </a>
-                  )}
-                  {pub.url && !pub.doi && (
-                    <a href={pub.url} target="_blank" rel="noreferrer"
-                       style={{ color: 'var(--color-accent)', textDecoration: 'underline' }}>
-                      Link
-                    </a>
-                  )}
+            {filtered.map((pub, idx) => (
+              <li key={pub.id} className="publication-item">
+                <span className="pub-number">{idx + 1}.</span>
+                <div className="pub-content">
+                  <p className="pub-title">{pub.title}</p>
+                  <p className="pub-authors">{pub.authors}</p>
+                  {pub.journal_name && <p className="pub-venue"><em>{pub.journal_name}</em></p>}
+                  <div className="pub-meta">
+                    {pub.year      && <span className="badge badge-accent">{pub.year}</span>}
+                    {pub.volume    && <span className="text-muted" style={{ fontSize: 'var(--font-size-sm)' }}>Vol. {pub.volume}</span>}
+                    {pub.pages     && <span className="text-muted" style={{ fontSize: 'var(--font-size-sm)' }}>pp. {pub.pages}</span>}
+                    {pub.indexing  && <span className="badge badge-indexing">{pub.indexing}</span>}
+                    {pub.doi && (
+                      <a href={`https://doi.org/${pub.doi}`} target="_blank" rel="noreferrer" className="btn-doi">
+                        DOI
+                      </a>
+                    )}
+                    {pub.url && !pub.doi && (
+                      <a href={pub.url} target="_blank" rel="noreferrer" className="btn-doi">
+                        Link
+                      </a>
+                    )}
+                  </div>
                 </div>
               </li>
             ))}
-            {filtered.length === 0 && (
-              <p style={{ color: 'var(--color-text-muted)' }}>No publications found.</p>
-            )}
-          </motion.ol>
+          </motion.ul>
         )}
       </div>
     </section>
