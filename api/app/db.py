@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 from app.config import settings
 
@@ -8,22 +8,34 @@ class Base(DeclarativeBase):
     pass
 
 
-if not settings.database_url:
-    engine = None
-    SessionLocal = None
-else:
-    engine = create_engine(
-        settings.database_url,
+def _build_engine():
+    url = settings.database_url_normalized
+    if not url:
+        return None
+    return create_engine(
+        url,
         pool_pre_ping=True,
         pool_size=5,
         max_overflow=10,
     )
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+engine = _build_engine()
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine) if engine is not None else None
 
 
 def get_db():
+    from fastapi import HTTPException
+
     if SessionLocal is None:
-        raise RuntimeError("DATABASE_URL is not set")
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Database not configured. Set DATABASE_URL in the repository root `.env` "
+                "(or `frontend/.env` / `api/.env`). Copy from `.env.example`. "
+                "Use the Postgres connection string from Supabase → Project Settings → Database."
+            ),
+        )
     db = SessionLocal()
     try:
         yield db

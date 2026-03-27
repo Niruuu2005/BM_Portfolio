@@ -13,10 +13,10 @@ Do **not** commit `.env`. It is listed in the root [`.gitignore`](../.gitignore)
 | Component | How |
 |-----------|-----|
 | **Vite** (`npm run dev` / `npm run build` in `frontend/`) | [`frontend/vite.config.js`](../frontend/vite.config.js) sets `envDir` to the repo root so `VITE_*` variables are read from there. |
-| **FastAPI** (`uvicorn` from `api/`) | [`api/app/config.py`](../api/app/config.py) loads, in order: root `.env`, root `.env.local`, optional `api/.env` (only files that exist). |
+| **FastAPI** (`uvicorn` from `api/`) | [`api/app/config.py`](../api/app/config.py) loads via **python-dotenv** (in order): root `.env`, root `.env.local`, `api/.env`, `api/.env.local`, `frontend/.env`, `frontend/.env.local`. **Later files override** duplicate keys. |
 | **`create-admins` script** | [`frontend/scripts/create-supabase-admin.mjs`](../frontend/scripts/create-supabase-admin.mjs) loads root `.env` first, then legacy `frontend/.env` if present. |
 
-First-defined value wins for the script; FastAPI merges env files with Pydantic’s usual rules.
+For the admin script, `create-supabase-admin.mjs` loads root first, then legacy `frontend/.env` (first file wins per key). For FastAPI, use the order above. If the DB cannot connect, see [troubleshooting_db.md](troubleshooting_db.md).
 
 ## Variable reference
 
