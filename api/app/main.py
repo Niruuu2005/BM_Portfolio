@@ -1,10 +1,15 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.config import settings
+from app.db import SessionLocal
 from app.routers import admin, health, public
+
+logger = logging.getLogger("uvicorn.error")
 
 app = FastAPI(
     title="BM Portfolio API",
@@ -22,6 +27,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+async def _warn_if_no_database() -> None:
+    if not settings.database_url.strip() or SessionLocal is None:
+        logger.warning(
+            "DATABASE_URL is not set or invalid. Copy .env.example to the repo root `.env` "
+            "and set DATABASE_URL (Supabase → Project Settings → Database). "
+            "Public and admin routes that need Postgres will return 503 until then."
+        )
+
 
 # Full paths (local proxy + Vercel Services as documented).
 app.include_router(health.router, prefix="/api", tags=["health"])
@@ -45,7 +61,7 @@ async def sqlalchemy_exception_handler(_request, exc: SQLAlchemyError):
         status_code=503,
         content={
             "detail": (
-                "Database error. Set DATABASE_URL in the repo root .env and ensure "
+                "Database error. Set DATABASE_URL in the repo root `.env` and ensure "
                 "migrations in docs/sql are applied. "
                 f"({exc.__class__.__name__})"
             ),
