@@ -12,7 +12,10 @@ export default defineConfig(({ mode }) => {
     ...loadEnv(mode, repoRoot, ''),
     ...loadEnv(mode, frontendRoot, ''),
   }
-  const apiProxyTarget = mergedEnv.VITE_DEV_API_PROXY || 'http://127.0.0.1:8000'
+  // Match uvicorn: set API_PORT in repo root .env (e.g. 8001) or full URL in VITE_DEV_API_PROXY.
+  const apiPort = mergedEnv.API_PORT || '8000'
+  const apiProxyTarget =
+    mergedEnv.VITE_DEV_API_PROXY || `http://127.0.0.1:${apiPort}`
 
   const viteEnvDefine = Object.fromEntries(
     Object.entries(mergedEnv)

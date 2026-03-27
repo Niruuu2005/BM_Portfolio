@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.config import settings
 from app.routers import admin, health, public
@@ -34,3 +36,18 @@ app.include_router(admin.router, prefix="/admin", tags=["admin"], include_in_sch
 @app.get("/")
 def root():
     return {"service": "bm-portfolio-api", "docs": "/api/docs"}
+
+
+@app.exception_handler(SQLAlchemyError)
+async def sqlalchemy_exception_handler(_request, exc: SQLAlchemyError):
+    """Avoid opaque 500s when DB is down or schema mismatches."""
+    return JSONResponse(
+        status_code=503,
+        content={
+            "detail": (
+                "Database error. Set DATABASE_URL in the repo root .env and ensure "
+                "migrations in docs/sql are applied. "
+                f"({exc.__class__.__name__})"
+            ),
+        },
+    )
