@@ -33,9 +33,30 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Or double-click / run [`run-dev.ps1`](run-dev.ps1) (Windows) or [`run-dev.sh`](run-dev.sh) (Unix) from the `api/` directory.
+Or double-click / run [`run-dev.ps1`](run-dev.ps1) (Windows) or [`run-dev.sh`](run-dev.sh) from the `api/` directory.
 
-- Health: `GET http://localhost:8000/api/health`
+### Port already in use or `WinError 10013` (Windows)
+
+Usually **port 8000 is already taken** (another uvicorn, Docker, etc.) or Windows is blocking the bind.
+
+1. **Use another port** (example `8001`):
+
+   ```powershell
+   $env:API_PORT = "8001"
+   .\run-dev.ps1
+   ```
+
+   In the **repo root** `.env`, point Vite at the same port:
+
+   ```env
+   VITE_DEV_API_PROXY=http://127.0.0.1:8001
+   ```
+
+   If you use `VITE_API_URL=http://localhost:8000/api` instead of `/api`, set that URL to match the port.
+
+2. **Or free port 8000**: in PowerShell, `Get-NetTCPConnection -LocalPort 8000` then `Stop-Process -Id <OwningProcess>` for a stuck old uvicorn.
+
+- Health: `GET http://localhost:<port>/api/health` (e.g. `http://127.0.0.1:8000/api/health`)
 - Public: prefix `/api/public` (no auth)
 - Admin: prefix `/api/admin` (header `Authorization: Bearer <supabase access_token>`)
 - `GET /api/admin/me` returns `{ user_id, role }` for the signed-in admin.
